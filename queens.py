@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 BOARD_SIZE = 0
 NUM_QUEENS = 0
 
+# load instance from file
 def load_instance(input_file_name):
     global BOARD_SIZE, NUM_QUEENS
     
@@ -13,8 +14,46 @@ def load_instance(input_file_name):
     
     return BOARD_SIZE, NUM_QUEENS
 
+# convert position (i, j) into var number for white queen
+# 1 ... n^2
+def pos_to_white_var(i, j):
+    return i * BOARD_SIZE + j + 1
+
+# convert position (i, j) into var number for black queen
+# n^2 + 1 ... 2 * n^2 
+def pos_to_black_var(i, j):
+    return BOARD_SIZE * BOARD_SIZE + i * BOARD_SIZE + j + 1
+
+# detects if position (i1,j1) attacks on position(i2,j2)
+def attacks(i1, j1, i2, j2):
+    if i1 == i2 or j1 == j2:
+        return True
+    if abs(i1 - i2) == abs(j1 - j2):
+        return True
+    
+    return False
+
 def encode(board_size, num_queens):    
-    return None
+
+    # 1. CONSTRAINT: at most one queen per square...
+    for i in range(board_size):
+        for j in range(board_size):
+            cnf.append([-pos_to_white_var(i, j), -pos_to_black_var(i, j), 0])
+    
+    # 2. CONSTRAINT: white queens don't attack black queens...
+    for i1 in range(board_size):
+        for j1 in range(board_size):
+            for i2 in range(board_size):
+                for j2 in range(board_size):
+                    if (i1, j1) == (i2, j2):
+                        continue
+                    if attacks(i1, j1, i2, j2):
+                        cnf.append([-pos_to_white_var(i1, j1), -pos_to_black_var(i2, j2), 0])
+
+    # 3. CONSTRAINT: cardinality constraints...
+    pass
+
+    return cnf, nr_vars
 
 def call_solver(cnf, nr_vars, output_name, solver_name, verbosity):
     with open(output_name, "w") as file:
@@ -34,6 +73,7 @@ def print_result(result):
         print("##################################################################")
         print("############[ UNSATISFIABLE - No solution exists! ]##############")
         print("##################################################################")
+        print()
         return
     
     model = []
