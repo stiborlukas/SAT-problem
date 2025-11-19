@@ -1,5 +1,6 @@
 import subprocess
 from argparse import ArgumentParser
+from itertools import combinations
 
 BOARD_SIZE = 0
 NUM_QUEENS = 0
@@ -51,7 +52,25 @@ def encode(board_size, num_queens):
                         cnf.append([-pos_to_white_var(i1, j1), -pos_to_black_var(i2, j2), 0])
 
     # 3. CONSTRAINT: cardinality constraints...
-    pass
+    all_positions = [(i, j) for i in range(board_size) for j in range(board_size)]
+    total_positions = board_size * board_size
+    
+    print(f"  Total positions: {total_positions}, Required queens: {num_queens}")
+
+    if num_queens > 0 and num_queens < total_positions:
+        print(f"  Generating at-least-{num_queens} clauses for white queens...")
+        for combo in combinations(all_positions, total_positions - num_queens + 1):
+            clause = [pos_to_white_var(i, j) for i, j in combo]
+            clause.append(0)
+            cnf.append(clause)
+    
+    # At least NUM_QUEENS black queens
+    if num_queens > 0 and num_queens < total_positions:
+        print(f"  Generating at-least-{num_queens} clauses for black queens...")
+        for combo in combinations(all_positions, total_positions - num_queens + 1):
+            clause = [pos_to_black_var(i, j) for i, j in combo]
+            clause.append(0)
+            cnf.append(clause)
 
     return cnf, nr_vars
 
