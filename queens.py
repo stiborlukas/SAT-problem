@@ -6,12 +6,19 @@ BOARD_SIZE = 0
 NUM_QUEENS = 0
 
 # load instance from file
-def load_instance(input_file_name):
+def load_instance(input_file_name=None, board_size=None, num_queens=None):
+
     global BOARD_SIZE, NUM_QUEENS
-    
-    with open(input_file_name, "r") as file:
-        BOARD_SIZE = int(next(file).strip())
-        NUM_QUEENS = int(next(file).strip())
+
+    if input_file_name:
+        with open(input_file_name, "r") as file:
+            BOARD_SIZE = int(next(file).strip())
+            NUM_QUEENS = int(next(file).strip())
+    elif board_size is not None and num_queens is not None:
+        BOARD_SIZE = board_size
+        NUM_QUEENS = num_queens
+    else:
+        raise ValueError("Either input file or board_size+num_queens must be provided!")
     
     return BOARD_SIZE, NUM_QUEENS
 
@@ -35,6 +42,9 @@ def attacks(i1, j1, i2, j2):
     return False
 
 def encode(board_size, num_queens):    
+
+    cnf = []
+    nr_vars = 2 * board_size * board_size
 
     # 1. CONSTRAINT: at most one queen per square...
     for i in range(board_size):
@@ -71,6 +81,8 @@ def encode(board_size, num_queens):
             clause = [pos_to_black_var(i, j) for i, j in combo]
             clause.append(0)
             cnf.append(clause)
+
+    print(f"Encoding complete! Total clauses: {len(cnf)}")
 
     return cnf, nr_vars
 
@@ -118,9 +130,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i",
         "--input",
-        default="input.in",
         type=str,
         help="The instance file."
+    )
+    parser.add_argument(
+        "-n",
+        "--board-size",
+        type=int,
+        help="Board size (NxN). Must be used with -k."
+    )
+    parser.add_argument(
+        "-k",
+        "--num-queens",
+        type=int,
+        help="Number of queens of each color. Must be used with -n."
     )
     parser.add_argument(
         "-o",
@@ -146,7 +169,17 @@ if __name__ == "__main__":
     )
     
     args = parser.parse_args()
-    board_size, num_queens = load_instance(args.input)
+    if args.input and (args.board_size or args.num_queens):
+        parser.error("Cannot use both --input and --board-size/--num-queens together!")
+    
+    if not args.input and not (args.board_size and args.num_queens):
+        parser.error("Must provide either --input file OR both --board-size and --num-queens!")
+    
+    if args.input:
+        board_size, num_queens = load_instance(input_file_name=args.input)
+    else:
+        board_size, num_queens = load_instance(board_size=args.board_size, num_queens=args.num_queens)
+
     cnf, nr_vars = encode(board_size, num_queens)
     result = call_solver(cnf, nr_vars, args.output, args.solver, args.verb)
     print_result(result)
