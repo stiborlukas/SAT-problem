@@ -122,6 +122,45 @@ def print_result(result):
     print("###########[ Human readable result - Queens Problem ]############")
     print("##################################################################")
     print()
+
+    board = [[' ' for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+    white_count = 0
+    black_count = 0
+    
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            white_var = pos_to_white_var(i, j)
+            black_var = pos_to_black_var(i, j)
+            
+            if white_var <= len(model) and model[white_var - 1] > 0:
+                board[i][j] = 'W'
+                white_count += 1
+            elif black_var <= len(model) and model[black_var - 1] > 0:
+                board[i][j] = 'B'
+                black_count += 1
+    
+    print(f"White queens: {white_count}")
+    print(f"Black queens: {black_count}")
+    print()
+    print("Board layout (W = white queen, B = black queen, . = empty):")
+    print()
+    print("  ", end="")
+    for j in range(BOARD_SIZE):
+        print(j, end=" ")
+    print()
+    print("  +" + "-" * (2 * BOARD_SIZE - 1) + "+")
+    
+    for i in range(BOARD_SIZE):
+        print(f"{i} |", end="")
+        for j in range(BOARD_SIZE):
+            if board[i][j] == ' ':
+                print(".", end=" ")
+            else:
+                print(board[i][j], end=" ")
+        print("|")
+    
+    print("  +" + "-" * (2 * BOARD_SIZE - 1) + "+")
+    print()
     
 
 if __name__ == "__main__":
