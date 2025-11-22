@@ -207,7 +207,7 @@ Pro demonstraci a testování jsou přiloženy následující příklady:
 SAT-problem/
 ├── instances/         # Složka se soubory určených k testování
 ├── glucose-syrup      # Solver
-├── queens.oy          # Hlavní python soubor
+├── queens.py          # Hlavní python soubor
 ├── testing.sh         # Bash soubor pro hromadné testování 
 ├── README.md          # Dokumentace repozitáře
 ```
