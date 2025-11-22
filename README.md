@@ -199,3 +199,15 @@ Pro demonstraci a testování jsou přiloženy následující příklady:
   * **Total clauses:** celkový počet klauzulí v CNF.
   * **Total time:** celkový čas běhu (kódování + solver) v sekundách.
   * **???** znamená neměřeno/příliš dlouhý běh.
+
+
+## Struktura repozitáře
+
+```
+SAT-problem/
+├── instances/         # Složka se soubory určených k testování
+├── glucose-syrup      # Solver
+├── queens.oy          # Hlavní python soubor
+├── testing.sh         # Bash soubor pro hromadné testování 
+├── README.md          # Dokumentace repozitáře
+```
