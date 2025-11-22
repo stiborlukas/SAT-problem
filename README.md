@@ -101,8 +101,10 @@ python3 queens.py -n 6 -k 2 -s glucose-syrup -v 1
 
 # Example Instances
 
-* `3x3-SAT.in` – problem is satisfiable
-* `3x3-UNSAT.in` – problem is unsatisfiable
+* `3x1-SAT.in` – a small, human-analyzeable SAT instance
+* `3x3-UNSAT.in` – a small, human-analyzeable UNSAT instance
+* `6x4-SAT.in` – SAT instance that will run for a non-trivial amount of time
+* `8x3-SAT.in` – SAT instance that will run for a non-trivial amount of time
 
 ---
 
