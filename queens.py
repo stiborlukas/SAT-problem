@@ -1,4 +1,5 @@
 import subprocess
+import time
 from argparse import ArgumentParser
 from itertools import combinations
 
@@ -42,6 +43,7 @@ def attacks(i1, j1, i2, j2):
     return False
 
 def encode(board_size, num_queens):    
+    start_encode = time.time()
 
     cnf = []
     nr_vars = 2 * board_size * board_size
@@ -65,10 +67,10 @@ def encode(board_size, num_queens):
     all_positions = [(i, j) for i in range(board_size) for j in range(board_size)]
     total_positions = board_size * board_size
     
-    print(f"  Total positions: {total_positions}, Required queens: {num_queens}")
+    if not quiet:
+        print(f"  Total positions: {total_positions}, Required queens: {num_queens}")
 
     if num_queens > 0 and num_queens < total_positions:
-        print(f"  Generating at-least-{num_queens} clauses for white queens...")
         for combo in combinations(all_positions, total_positions - num_queens + 1):
             clause = [pos_to_white_var(i, j) for i, j in combo]
             clause.append(0)
@@ -76,33 +78,53 @@ def encode(board_size, num_queens):
     
     # At least NUM_QUEENS black queens
     if num_queens > 0 and num_queens < total_positions:
-        print(f"  Generating at-least-{num_queens} clauses for black queens...")
         for combo in combinations(all_positions, total_positions - num_queens + 1):
             clause = [pos_to_black_var(i, j) for i, j in combo]
             clause.append(0)
             cnf.append(clause)
 
-    print(f"Encoding complete! Total clauses: {len(cnf)}")
+    end_encode = time.time()
+    encoding_time = end_encode - start_encode
 
-    return cnf, nr_vars
+    if not quiet: 
+        print(f"Encoding complete! Total clauses: {len(cnf)}")
+        print(f"Encoding time: {encoding_time:.3f}s")
+
+    return cnf, nr_vars, encoding_time
 
 def call_solver(cnf, nr_vars, output_name, solver_name, verbosity):
+    start_write = time.time()
+    
     with open(output_name, "w") as file:
         file.write("p cnf " + str(nr_vars) + " " + str(len(cnf)) + '\n')
         for clause in cnf:
             file.write(' '.join(str(lit) for lit in clause) + '\n')
+    
+    end_write = time.time()
+    
+    if not quiet:
+        print(f"Writing CNF to file took: {end_write - start_write:.3f}s")
+    
+    start_solver = time.time()
+    result = subprocess.run(['./' + solver_name, '-model', '-verb=' + str(verbosity), output_name], 
+                           stdout=subprocess.PIPE)
+    end_solver = time.time()
+    solver_time = end_solver - start_solver
+    
+    if not quiet:
+        print(f"SAT solver time: {solver_time:.3f}s")
 
-    return subprocess.run(['./' + solver_name, '-model', '-verb=' + str(verbosity), output_name], 
-                         stdout=subprocess.PIPE)
+    return result, solver_time
 
 def print_result(result):
-    for line in result.stdout.decode('utf-8').split('\n'):
-        print(line)
+    if not quiet:
+        for line in result.stdout.decode('utf-8').split('\n'):
+            print(line)
 
     if result.returncode == 20:
         print()
         print("##################################################################")
-        print("############[ UNSATISFIABLE - No solution exists! ]##############")
+        print("############[ UNSATISFIABLE - No solution exists! ]###############")
         print("##################################################################")
         print()
         return
@@ -119,7 +141,7 @@ def print_result(result):
     
     print()
     print("##################################################################")
-    print("###########[ Human readable result - Queens Problem ]############")
+    print("################[ SATISFIABLE - Queens Problem ]##################")
     print("##################################################################")
     print()
 
@@ -138,10 +160,10 @@ def print_result(result):
             elif black_var <= len(model) and model[black_var - 1] > 0:
                 board[i][j] = 'B'
                 black_count += 1
-    
+
+    print(f"Chessboard size: {BOARD_SIZE} x {BOARD_SIZE}") 
     print(f"White queens: {white_count}")
     print(f"Black queens: {black_count}")
-    print()
     print("Board layout (W = white queen, B = black queen, . = empty):")
     print()
     print("  ", end="")
@@ -160,7 +182,6 @@ def print_result(result):
         print("|")
     
     print("  +" + "-" * (2 * BOARD_SIZE - 1) + "+")
-    print()
     
 
 if __name__ == "__main__":
@@ -206,6 +227,11 @@ if __name__ == "__main__":
         choices=range(0, 2),
         help="Verbosity of the SAT solver used."
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress verbosity of Encoding and other prints. (Default: Verbose)"
+    )
     
     args = parser.parse_args()
     if args.input and (args.board_size or args.num_queens):
@@ -214,11 +240,28 @@ if __name__ == "__main__":
     if not args.input and not (args.board_size and args.num_queens):
         parser.error("Must provide either --input file OR both --board-size and --num-queens!")
     
+    total_start = time.time()
+
     if args.input:
         board_size, num_queens = load_instance(input_file_name=args.input)
     else:
         board_size, num_queens = load_instance(board_size=args.board_size, num_queens=args.num_queens)
 
-    cnf, nr_vars = encode(board_size, num_queens)
-    result = call_solver(cnf, nr_vars, args.output, args.solver, args.verb)
+    if args.quiet:
+        quiet = args.quiet
+    else:
+        quiet = False
+
+    cnf, nr_vars, encoding_time = encode(board_size, num_queens)
+    result, solver_time = call_solver(cnf, nr_vars, args.output, args.solver, args.verb)
+    total_end = time.time()
+    total_time = total_end - total_start
     print_result(result)
+    
+    print("="*70)
+    print("TIMING SUMMARY:")
+    print("="*70)
+    print(f"Encoding time:    {encoding_time:>10.3f}s")
+    print(f"SAT solver time:  {solver_time:>10.3f}s")
+    print(f"Total time:       {total_time:>10.3f}s")
+    print("="*70)
