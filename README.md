@@ -25,6 +25,7 @@ Pro nalezení řešení musí být splněny tři hlavní skupiny omezení (klauz
 1.  **Exkluzivita pozice:** Na jedno pole může být umístěna **maximálně jedna** královna (jakékoliv barvy).
 2.  **Bezpečné umístění (No Attack):** Žádná bílá královna nesmí napadat žádnou černou královnu.
 3.  **Kardinalita (Počet královen):** Musí být umístěno **alespoň $K$** bílých královen a **alespoň $K$** černých královen.
+    * Použil jsem pouze "at-least-K" cardinality constraint. "At-most-K" není nutný, protože solver přirozeně najde řešení s přesně K dámami díky symetrii problému a útočným omezením.
 
 -----
 
@@ -59,7 +60,7 @@ Pro každou dvojici polí $(i_1, j_1)$ a $(i_2, j_2)$, pokud se napadají (funkc
   * **CNF klauzule:** $(\neg W_{i_1, j_1} \vee \neg B_{i_2, j_2})$
   * **Počet klauzulí:** Záleží na $N$; v nejhorším případě blížící se $2 \cdot N^2 \cdot (N^2 - 1)$.
 
-#### 3\. Kardinalita (alespoň K)
+#### 3\. Kardinalita
 
 Používá se **kombinatorické kódování** pro vynucení podmínky **"alespoň $K$ královen je umístěno"**. To je ekvivalentní podmínce **"nejvýše $N^2 - K$ polí je neobsazených"**.
 
@@ -98,11 +99,11 @@ python3 queens.py [-h] [-i INPUT] [-n BOARD_SIZE] [-k NUM_QUEENS] \
   * `-n BOARD_SIZE`, `--board-size BOARD_SIZE`: Velikost šachovnice ($N \times N$). **Musí být použito s `-k`.**
   * `-k NUM_QUEENS`, `--num-queens NUM_QUEENS`: Počet královen každé barvy ($K$). **Musí být použito s `-n`.**
 
-#### Konfigurace výstupu a řešiče
+#### Konfigurace výstupu a solveru
 
   * `-o OUTPUT`, `--output OUTPUT`: Výstupní soubor pro DIMACS CNF formuli. *Výchozí: `formula.cnf`*
-  * `-s SOLVER`, `--solver SOLVER`: SAT řešič k použití. *Výchozí: `glucose-syrup`*
-  * `-v {0,1}`, `--verb {0,1}`: Úroveň verbosity SAT řešiče (0 = tichý, 1 = podrobný).
+  * `-s SOLVER`, `--solver SOLVER`: SAT solver k použití. *Výchozí: `glucose-syrup`*
+  * `-v {0,1}`, `--verb {0,1}`: Úroveň verbosity SAT solveru (0 = tichý, 1 = podrobný).
   * `--quiet`: Potlačí verbosity kódování a ostatní výpisy skriptu. (*Výchozí: Verbose*)
   * `-h`, `--help`: Zobrazí nápovědu.
 
@@ -112,8 +113,6 @@ Vstupní soubor obsahuje dva řádky:
 
 1.  **$N$** (celé číslo, velikost desky $N \times N$)
 2.  **$K$** (celé číslo, požadovaný počet královen každé barvy)
-
-<!-- end list -->
 
 ```
 3
@@ -131,7 +130,7 @@ Skript vytvoří soubor `formula.cnf` a vypíše výsledek na standardní výstu
 
 -----
 
-## Popis Přiložených Instancí
+## Popis Instancí
 
 Pro demonstraci a testování jsou přiloženy následující příklady:
 
@@ -195,8 +194,8 @@ Pro demonstraci a testování jsou přiloženy následující příklady:
 
 **Legenda:**
 
-  * **Řádky =** velikost desky $N$, **sloupce =** počet královen $K$.
+  * **Řádky =** velikost šachovnice $N$, **sloupce =** počet královen $K$.
   * **SAT/UNSAT:** splnitelnost instance.
   * **Total clauses:** celkový počet klauzulí v CNF.
-  * **Total time:** celkový čas běhu (kódování + řešení) v sekundách.
+  * **Total time:** celkový čas běhu (kódování + solver) v sekundách.
   * **???** znamená neměřeno/příliš dlouhý běh.
