@@ -21,6 +21,11 @@ def load_instance(input_file_name=None, board_size=None, num_queens=None):
     else:
         raise ValueError("Either input file or board_size+num_queens must be provided!")
     
+    if BOARD_SIZE <= 0:
+        raise ValueError("Board size must be a positive integer greater than 0!")
+    if NUM_QUEENS < 0:
+        raise ValueError("Number of queens must be a non-negative integer!")
+
     return BOARD_SIZE, NUM_QUEENS
 
 # convert position (i, j) into var number for white queen
@@ -244,7 +249,7 @@ if __name__ == "__main__":
     if args.input and (args.board_size or args.num_queens):
         parser.error("Cannot use both --input and --board-size/--num-queens together!")
     
-    if not args.input and not (args.board_size and args.num_queens):
+    if not args.input and (args.board_size is None or args.num_queens is None):
         parser.error("Must provide either --input file OR both --board-size and --num-queens!")
     
     total_start = time.time()
