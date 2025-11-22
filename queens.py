@@ -68,16 +68,16 @@ def encode(board_size, num_queens):
     total_positions = board_size * board_size
     
     if not quiet:
-        print(f"  Total positions: {total_positions}, Required queens: {num_queens}")
+        print(f"Total positions: {total_positions}, Required queens: {num_queens}")
 
-    if num_queens > 0 and num_queens < total_positions:
+    if num_queens > 0 and num_queens <= total_positions:
         for combo in combinations(all_positions, total_positions - num_queens + 1):
             clause = [pos_to_white_var(i, j) for i, j in combo]
             clause.append(0)
             cnf.append(clause)
     
     # At least NUM_QUEENS black queens
-    if num_queens > 0 and num_queens < total_positions:
+    if num_queens > 0 and num_queens <= total_positions:
         for combo in combinations(all_positions, total_positions - num_queens + 1):
             clause = [pos_to_black_var(i, j) for i, j in combo]
             clause.append(0)
